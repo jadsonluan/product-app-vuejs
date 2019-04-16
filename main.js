@@ -6,8 +6,25 @@ var app = new Vue({
         inStock: false,
         details: ["80% cotton", "20% polyester", "Gender neutral"],
         variants: [
-            {variantId: 2234, variantColor: "green"},
-            {variantId: 2235, variantColor: "blue"}
-        ]
+            {
+                variantId: 2234, 
+                variantColor: "green",
+                variantImage: "./assets/vmSocks-green.jpg"
+            },
+            {
+                variantId: 2235, 
+                variantColor: "blue",
+                variantImage: "./assets/vmSocks-blue.jpg"
+            },
+        ],
+        cart: 0,
+    },
+    methods: {
+        addToCart() {
+            this.cart += 1;
+        },
+        updateProduc(variantImage) {
+            this.image = variantImage;
+        }
     }
 });
