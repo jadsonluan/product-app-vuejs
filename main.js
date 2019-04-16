@@ -1,3 +1,7 @@
+var eventBus = new Vue({
+
+})
+
 Vue.component('product-review', {
     template: `
         <form class="review-form" @submit.prevent="onSubmit">
@@ -7,7 +11,7 @@ Vue.component('product-review', {
                     <li v-for="error in errors">{{error}}</li>
                 </ul>
             </p>
-            
+
             <p>
                 <label for="name">Name:</label>
                 <input id="name" v-model="name">
@@ -45,14 +49,14 @@ Vue.component('product-review', {
     methods: {
         onSubmit() {
             this.errors = [];
-            
+
             if (this.name && this.review && this.rating) {
                 let productReview = {
                     name: this.name,
                     review: this.review,
                     rating: this.rating
                 }
-                this.$emit('review-submitted', productReview);
+                eventBus.$emit('review-submitted', productReview);
                 this.name = null
                 this.review = null
                 this.rating = null
@@ -63,6 +67,46 @@ Vue.component('product-review', {
             }
         }
     }
+})
+
+Vue.component('product-tabs', {
+  props: {
+    reviews: {
+      type: Array,
+      required: true
+    }
+  },
+  template: `
+    <div>
+      <span class="tab"
+            :class="{ activeTab: selectedTab == tab}"
+            v-for="(tab, index) in tabs" 
+            :key="index"
+            @click="selectedTab = tab">
+            {{tab}}
+      </span>
+
+      <div v-show="selectedTab === 'Reviews'">
+        <h2>Reviews</h2>
+          <p v-if="!reviews.length">There are no reviews yet.</p>
+          <ul>
+            <li v-for="review in reviews">
+              <p>{{review.name}}</p>
+              <p>Rating: {{review.rating}}</p>
+              <p>{{review.review}}</p>
+            </li>
+          </ul>
+      </div>
+
+      <product-review v-show="selectedTab === 'Make a Review'"></product-review>
+    </div>
+  `,
+  data() {
+    return {
+      tabs: ['Reviews', 'Make a Review'],
+      selectedTab: 'Reviews'
+    }
+  }
 })
 
 Vue.component('product', {
@@ -88,33 +132,21 @@ Vue.component('product', {
                 <li v-for="detail in details">{{detail}}</li>
             </ul>
 
-            <div 
-                v-for="(variant, index) in variants" 
+            <div
+                v-for="(variant, index) in variants"
                 :key="variant.variantId"
                 class="color-box"
                 :style="{ backgroundColor: variant.variantColor}"
                 @mouseover="updateProduct(index)">
             </div>
 
-            <button 
-                v-on:click="addToCart" 
+            <button
+                v-on:click="addToCart"
                 :disabled="!inStock"
                 :class="{ disabledButton: !inStock }">Add to Cart</button>
         </div>
 
-        <div>
-            <h2>Reviews</h2>
-            <p v-if="!reviews.length">There are no reviews yet.</p>
-            <ul>
-                <li v-for="review in reviews">
-                    <p>{{review.name}}</p>
-                    <p>Rating: {{review.rating}}</p>
-                    <p>{{review.review}}</p>
-                </li>
-            </ul>
-        </div>
-
-        <product-review @review-submitted="addReview"></product-review>
+        <product-tabs :reviews="reviews"></product-tabs>
     </div>
     `,
     data() {
@@ -125,16 +157,16 @@ Vue.component('product', {
             details: ["80% cotton", "20% polyester", "Gender neutral"],
             variants: [
                 {
-                    variantId: 2234, 
+                    variantId: 2234,
                     variantColor: "green",
                     variantImage: "./assets/vmSocks-green.jpg",
                     variantQuantity: 10
                 },
                 {
-                    variantId: 2235, 
+                    variantId: 2235,
                     variantColor: "blue",
                     variantImage: "./assets/vmSocks-blue.jpg",
-                    variantQuantity: 0   
+                    variantQuantity: 0
                 },
             ],
             reviews: []
@@ -146,9 +178,6 @@ Vue.component('product', {
         },
         updateProduct(index) {
             this.selectedVariant = index;
-        },
-        addReview(productReview) {
-            this.reviews.push(productReview);
         }
     },
     computed: {
@@ -168,6 +197,11 @@ Vue.component('product', {
             return 2.99;
         }
 
+    },
+    mounted() {
+      eventBus.$on('review-submitted', productReview => {
+        this.reviews.push(productReview);
+      })
     }
 });
 
